@@ -1,21 +1,21 @@
 package com.example.exempleminim2laura;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.exempleminim2laura.Models.Repos;
 import com.example.exempleminim2laura.Models.User;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -26,108 +26,88 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ActivityInicial extends AppCompatActivity {
-    private GithubAPI APIgit;
-    private ProgressBar progressBar;
-    private String user;
-    private static Retrofit retrofit;
-    private RecyclerView recyclerView;
-    private TextView repositoriesText;
-    private TextView followingText;
-    private android.widget.ImageView ImageView;
+    protected TextView followers;
+    protected TextView following;
+    protected android.widget.ImageView imageprofile;
+    RecyclerView recyclerView;
+    ProgressBar barProgreso;
+    GithubAPI apiRest;
+    public static final String MyPREFERENCES = "MyPrefs";
+    static final String BASEURL = "https://api.github.com/";
+    final Logger log = Logger.getLogger(String.valueOf(ActivityInicial.class));
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_initial);
 
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        recyclerView = findViewById(R.id.FollowersList);
-        ImageView = findViewById(R.id.imageProfile);
-        repositoriesText = findViewById(R.id.RepositoriesTextView);
-        followingText = findViewById(R.id.FollowingTextView);
+        recyclerView = findViewById(R.id.ReposList);
 
-        Bundle extras = getIntent().getExtras();
-        user = extras.getString("user");
-
-        startRetrofit();
-
-        APIgit = retrofit.create(GithubAPI.class);
-
-        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        recyclerView.setHasFixedSize(true);
-
-        CargarInfo();
-    }
-
-    private static void startRetrofit(){
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         //Attaching Interceptor to a client
         OkHttpClient client = new OkHttpClient().newBuilder().addInterceptor(interceptor).build();
 
-        retrofit = new Retrofit.Builder()
-                .baseUrl("http://api.github.com/") //Local host on windows 10.0.2.2 and ip our machine 147.83.7.203
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASEURL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(client)
                 .build();
+        apiRest = retrofit.create(GithubAPI.class);
 
-    }
+        //SharedPreferences sharedPref = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+        //String username = sharedPref.getString("Username","");
+        //No em funciona
+        String username = getIntent().getStringExtra("username");
 
-    public void CargarInfo(){
-        Call<User> call = APIgit.infoUser(user);
+        barProgreso = findViewById(R.id.progressBar);
+        barProgreso.setVisibility(View.VISIBLE);
+
+        Call<User> call = apiRest.infoUser(username);
         call.enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
                 final User user = response.body();
-                Log.d("Following i repos", String.valueOf(user.getFollowing() + ", " + String.valueOf(user.getPublic_repos())));
-                followingText.setText(String.valueOf(user.getFollowing()));
-                repositoriesText.setText(String.valueOf(user.getPublic_repos()));
-                Picasso.with(getApplicationContext()).load(user.getAvatar_url()).into(ImageView);
-                showProgress(false);
+                log.info("Correcto");
+                followers = findViewById(R.id.Followers);
+                following = findViewById(R.id.Following);
+                imageprofile = findViewById(R.id.imageProfile);
+                followers.setText(String.valueOf(user.getFollowers()));
+                following.setText(String.valueOf(user.getFollowing()));
+                Picasso.with(getApplicationContext()).load(user.getAvatar_url()).into(imageprofile);
 
-                cargarFollowers();
+                Call<List<Repos>> call2 = apiRest.repositories(username);
+                call2.enqueue(new Callback<List<Repos>>() {
+                    @Override
+                    public void onResponse(Call<List<Repos>> call2, Response<List<Repos>> resp2) {
+                        if(!response.isSuccessful()) {
+                            log.info("Error" + resp2.code());
+                            return;
+                        }
 
+                        List<Repos> listarepos = resp2.body();
+                        inicializarRecyclerView(listarepos);
+                        barProgreso.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<Repos>> call2, Throwable t) {
+
+                    }
+                });
             }
 
             @Override
             public void onFailure(Call<User> call, Throwable t) {
-                Toast.makeText(getApplicationContext(),"Error Code: "+ t.getMessage(),Toast.LENGTH_LONG).show();
-                showProgress(false);
+                Toast.makeText(getApplicationContext(), "Error Code" + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    public void cargarFollowers(){
-        showProgress(true);
-        APIgit = retrofit.create(GithubAPI.class);
-        Call<List<User>> call = APIgit.listaFollowers(user);
-        call.enqueue(new Callback<List<User>>() {
-            @Override
-            public void onResponse(Call<List<User>> call, Response<List<User>> response) {
-
-                if(response.isSuccessful()){
-                    Log.d("onResponse", "lista ha llegado");
-                    List<User> listaUsers = response.body();
-                    recyclerView = findViewById((R.id.FollowersList));
-                    // https://developer.android.com/guide/topics/ui/layout/recyclerview#java + video
-
-                    RecyclerViewAdapt myAdapter = new RecyclerViewAdapt(getApplicationContext(), listaUsers);
-                    recyclerView.setAdapter(myAdapter);
-                    showProgress(false);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<User>> call, Throwable t) {
-
-            }
-        });
-    }
-
-    public void showProgress(boolean visible){
-        if (visible)
-            this.progressBar.setVisibility(View.VISIBLE);
-        else
-            this.progressBar.setVisibility(View.GONE);
+    public void inicializarRecyclerView(List<Repos> repos){ //Inicializar RecyclerView
+        RecyclerViewAdapt adapter= new RecyclerViewAdapt(this,repos);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 }

@@ -11,7 +11,8 @@ public interface GithubAPI {
     @GET("/users/{username}")
     Call<User> infoUser(@Path("username") String user);
 
-    @GET("/users/{username}/followers")
-    Call<List<User>> listaFollowers(@Path("username") String user);
+
+    @GET("/users/{username}/repos")
+    Call<List<Repos>> repositories(@Path("username") String user);
 
 }

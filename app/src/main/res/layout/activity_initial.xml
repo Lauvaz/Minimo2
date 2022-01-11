@@ -7,71 +7,74 @@
 
     <ImageView
         android:id="@+id/imageProfile"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="200dp"
-        android:layout_marginBottom="400dp"
+        android:layout_width="81dp"
+        android:layout_height="81dp"
+        android:layout_marginEnd="250dp"
+        android:layout_marginBottom="500dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.51"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:srcCompat="@tools:sample/avatars" />
 
     <TextView
-        android:id="@+id/RepositoriesTextView"
+        android:id="@+id/FollowTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="100dp"
-        android:layout_marginBottom="500dp"
-        android:text="Repositories:"
+        android:layout_marginEnd="200dp"
+        android:layout_marginBottom="350dp"
+        android:text="Followers:"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/imageProfile"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/Repositories"
+        android:id="@+id/Followers"
         android:layout_width="58dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="500dp"
+        android:layout_marginEnd="100dp"
+        android:layout_marginBottom="350dp"
         android:text="TextView"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/RepositoriesTextView"
+        app:layout_constraintStart_toEndOf="@+id/FollowTextView"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/FollowingTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="120dp"
+        android:layout_marginEnd="200dp"
         android:layout_marginBottom="450dp"
         android:text="Following:"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/imageProfile"
-        app:layout_constraintTop_toBottomOf="@+id/RepositoriesTextView" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/FollowTextView" />
 
     <TextView
         android:id="@+id/Following"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="100dp"
         android:layout_marginBottom="450dp"
         android:text="TextView"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/FollowingTextView"
-        app:layout_constraintTop_toBottomOf="@+id/Repositories" />
+        app:layout_constraintTop_toBottomOf="@+id/Followers" />
 
     <TextView
-        android:id="@+id/FollowersTextView"
+        android:id="@+id/ReposTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="100dp"
-        android:text="Followers:"
-        android:textColor="#9C27B0"
+        android:text="Repositories:"
+        android:textColor="#3F51B5"
         android:textSize="34sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -79,15 +82,14 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/FollowersList"
-        android:layout_width="409dp"
-        android:layout_height="391dp"
-        android:layout_marginTop="10dp"
+        android:id="@+id/ReposList"
+        android:layout_width="347dp"
+        android:layout_height="341dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/FollowersTextView"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@+id/ReposTextView"
+        app:layout_constraintVertical_bias="0.692" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -98,4 +100,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,17 +1,17 @@
 package com.example.exempleminim2laura;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.exempleminim2laura.Models.User;
+
+import java.util.logging.Logger;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -23,67 +23,59 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ActivityMain extends AppCompatActivity {
 
-    private EditText user;
-    private Button exploreButton;
-    private GithubAPI APIgit;
-    private static Retrofit retrofit;
+    GithubAPI apiRest;
+    static final String BASEURL = "https://api.github.com/";
+    final Logger log = Logger.getLogger(String.valueOf(ActivityMain.class));
+
+    public static final String MyPREFERENCES = "MyPrefs";
+    SharedPreferences sharedPreferences;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        user = findViewById(R.id.UserEditText);
-        exploreButton = findViewById(R.id.buttonExploreFollowers);
-
-        startRetrofit();
-        cargarUser();
-    }
-
-    private static void startRetrofit(){
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        //Attaching Intercepor to a client
+        //Attaching Interceptor to a client
         OkHttpClient client = new OkHttpClient().newBuilder().addInterceptor(interceptor).build();
 
-        retrofit = new Retrofit.Builder()
-                .baseUrl("http://api.github.com/") //Local host on windows 10.0.2.2 and ip our machine 147.83.7.203
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASEURL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(client)
                 .build();
+        apiRest = retrofit.create(GithubAPI.class);
     }
 
-    private void cargarUser(){
-        APIgit = retrofit.create(GithubAPI.class);
-        exploreButton.setOnClickListener(new View.OnClickListener() {
+    //Boton para explorar followers
+    public void exploreFollowers(View view) {
+        Intent intent = new Intent(this, ActivityInicial.class);
+        TextView user = (TextView) findViewById(R.id.UserEditText);
+        String username = user.getText().toString();
+
+        Call<User> call = apiRest.infoUser(username);
+        call.enqueue(new Callback<User>() {
             @Override
-            public void onClick(View v) {
-                Log.d("click","ok");
+            public void onResponse(Call<User> call, Response<User> response) {
+                if(response.isSuccessful()){
+                    log.info("Usuario Correcto");
 
-                Call<User> call = APIgit.infoUser(user.getText().toString());
-                Log.d("User", user.getText().toString());
-                call.enqueue(new Callback<User>() {
-                    @Override
-                    public void onResponse(Call<User> call, Response<User> response) {
-                        Log.d("Info","Tenemos Respuesta");
-                        if(response.isSuccessful()){
-                            Log.d("onResponse", "Tenemos User");
-                            Intent intent = new Intent(getApplicationContext(),ActivityInicial.class);
-                            intent.putExtra("user", user.getText().toString());
-                            startActivity(intent);
-                        }
-                        else{
-                            Log.d("Info", "User Not Found");
-                            Toast.makeText(getApplicationContext(), "User Not Found" + response.code(), Toast.LENGTH_LONG).show();
-                        }
-                    }
+                    intent.putExtra("username", username);
+                    startActivity(intent);
+                }
+                else{
+                    log.info("Usuario no encontrado");
+                    Toast.makeText(getApplicationContext(),"Usuario no valido" + response.code(), Toast.LENGTH_LONG).show();
+                }
+            }
 
-                    @Override
-                    public void onFailure(Call<User> call, Throwable t) {
-                        Toast.makeText(getApplicationContext(),"Error: " + t.getMessage(), Toast.LENGTH_LONG);
-                    }
-                });
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                Toast.makeText(getApplicationContext(),"Error" + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
+
     }
 }
